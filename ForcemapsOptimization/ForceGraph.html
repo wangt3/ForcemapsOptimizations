@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+
+<html>
+  
+  <head>
+    <script>
+      function gatherCSV(){
+        var csvText = document.getElementById('csvData').value;
+        var plotData = JSON.parse(csvText);
+        var len = plotData.edges.length;
+
+        var nodes = [];
+        var dupes = [];
+
+        for (let i = 0; i < len;i++){
+          if (!(plotData.edges[i].source in dupes)) {
+            dupes.push(plotData.edges[i].source);
+            nodes.push({index:plotData.edges[i].source});
+          }
+          if (!(plotData.edges[i].target in dupes)){
+            dupes.push(plotData.edges[i].target);
+            nodes.push({index:plotData.edges[i].target});
+          }
+  
+        }
+
+        var link = [];
+
+        for (let i = 0; i< len;i++){
+          link.push(plotData.edges[i])
+        }
+        console.log(link);
+        // console.log(dupes);
+        // console.log(nodes);
+        
+        var svg =d3.select("svg"),
+        width = svg.attr("width"),
+        height = svg.attr("height");
+
+
+        var simulation = d3.forceSimulation()
+        .force('charge', d3.forceManyBody().strength(-100))
+        .force('link', d3.forceLink().distance(80)) 
+        .force('center', d3.forceCenter().x(width/2).y(height/2))
+        .nodes(nodes)
+        .on("tick",ticker);
+
+        simulation.force("link").links(plotData.edges)
+        svg.selectAll("line.link")
+        .data(plotData.edges, d => `${d.source.id}-${d.target.id}`)
+        .enter()
+        .append("line")
+        .style("stroke","black");
+        
+
+        var circleCreate = svg.selectAll("g.node") 
+        .data(nodes, function(d){return d.id})
+        .enter()
+        .append("g")
+        .attr("class", "node");
+
+        circleCreate.append("circle")
+        .attr("r", 10)
+        .style("stroke","black")
+        .style("fill","red");
+        
+        svg.selectAll("line.link")
+        .data(plotData.edges, d => `${d.source.id}-${d.target.id}`)
+        .enter()
+        .append("line")
+        .attr("class","link")
+        .style("stroke",'black');
+        
+      function ticker() {
+        d3.selectAll("line.link")
+        .attr("x1", function(d) {return d.source.x})
+        .attr("x2", function(d) {return d.target.x})
+        .attr("y1", function(d) {return d.source.y})
+        .attr("y2", function(d) {return d.target.y})
+        d3.selectAll("g.node")
+        .attr("transform", d => `translate(${d.x},${d.y})`)
+      }
+
+      }
+    </script>
+  
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    
+    <title>Simple I/O form</title>
+    <style>
+      html{
+      display: flex;
+      justify-content: center;
+      font-family: Roboto, Arial, sans-serif;
+      font-size: 15px;
+      }
+      body{
+      padding: 100px 100px;
+      display: flex;
+      justify-content: center;
+      font-family: Roboto, Arial, sans-serif;
+      font-size: 15px;
+      }
+      form {
+      border: 5px solid #f1f1f1;
+      }
+      input[type=text] {
+      width: 100%;
+      padding: 16px 8px;
+      margin: 8px 0;
+      text-overflow: clip;
+      display: inline-block;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+      }
+      textarea{
+      width: 100%;
+      padding: 16px 8px;
+      margin: 8px 0;
+      border: 1px solid #ccc;
+      box-sizing: border-box;
+      }
+      button {
+      background-color: #8ebf42;
+      color: white;
+      padding: 14px 0;
+      margin: 10px 0;
+      border: none;
+      width: 100%;
+      }
+      h1 {
+      padding: 14px 14px;
+
+      text-align:center;
+      font-size:18;
+      }
+      .formcontainer {
+      text-align: left;
+      margin: 24px 50px 12px;
+      }
+      p{
+        width: 100%;
+        padding: 1em;
+        margin: 8px 0;
+        margin-left: 10px;
+        border: 9px solid #ccc;
+        box-sizing: border-box;
+      }
+      .container {
+      padding: 16px 0;
+      text-align:left;
+      }
+      .pain   {
+        border: 5px solid #f1f1f1;
+      }
+    </style>
+  </head>
+  <body class = 'pain'>
+
+    <!-- <form name = 'csvInput' id = 'csvInput' method = "post"> -->
+      <div class="formcontainer">
+      <h1>I/O Analysis</h1>
+    
+      <div class="container">
+        <label for="datainput">Enter csv data in one line</label>
+          <textarea class = 'textInput'  id="csvData" rows = "5" placeholder="Enter Input" name ="test" required></textarea><br>
+      </div>
+        <button name ='draw' onclick= 'gatherCSV()'>Draw</button>
+      </form>
+      </div>
+  
+      <svg id = "chartSvg" width ='500' height ="500">
+
+      </svg>
+  </body>    
+</html>
